@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abadi — Host Halaman HTML</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  :root{
+    --bg:#14151A;
+    --surface:#1D1F26;
+    --surface-2:#262833;
+    --line:#32343F;
+    --accent:#A8FF60;
+    --accent-dim:#5C7A3A;
+    --text:#E9E8E3;
+    --muted:#8B8E99;
+    --danger:#FF6B6B;
+  }
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+  #root{height:100%;}
+
+  /* ---------------- Home view ---------------- */
+  #homeView{
+    min-height:100%;
+    display:flex;flex-direction:column;align-items:center;
+    padding:40px 18px 60px;
+  }
+  .brand{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+  .brand-mark{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);}
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;letter-spacing:.2px;}
+  .tagline{color:var(--muted);font-size:13.5px;margin-bottom:30px;text-align:center;max-width:380px;}
+
+  .card{
+    width:100%;max-width:680px;background:var(--surface);
+    border:1px solid var(--line);border-radius:16px;padding:22px;
+  }
+  .card-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;font-weight:600;}
+
+  textarea#codeInput{
+    width:100%;min-height:230px;resize:vertical;
+    background:var(--bg);color:var(--text);
+    border:1px solid var(--line);border-radius:10px;
+    padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.55;
+    outline:none;
+  }
+  textarea#codeInput:focus{border-color:var(--accent-dim);}
+
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  .hint{font-size:11.5px;color:var(--muted);line-height:1.5;max-width:380px;}
+
+  .btn{
+    border:none;border-radius:10px;cursor:pointer;font-weight:600;
+    display:inline-flex;align-items:center;gap:7px;
+    transition:transform .1s ease, opacity .15s ease, background .15s ease;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn-primary{background:var(--accent);color:#0E1206;padding:11px 20px;font-size:14px;}
+  .btn-primary:hover{opacity:.92;}
+  .btn-primary:disabled{opacity:.4;cursor:default;}
+  .btn-ghost{background:var(--surface-2);color:var(--text);padding:9px 14px;font-size:13px;}
+  .btn-ghost:hover{background:#30323C;}
+  .btn-icon{width:32px;height:32px;border-radius:8px;background:var(--surface-2);color:var(--muted);display:flex;align-items:center;justify-content:center;padding:0;}
+  .btn-icon:hover{color:var(--text);background:#30323C;}
+  .btn-icon svg{width:14px;height:14px;}
+
+  .example-link{font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+
+  /* hosted pages list */
+  .list-section{width:100%;max-width:680px;margin-top:30px;}
+  .list-title{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:12px;letter-spacing:.02em;}
+  .page-item{
+    display:flex;align-items:center;gap:12px;
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:13px 14px;margin-bottom:9px;
+  }
+  .page-item-main{flex:1;min-width:0;cursor:pointer;}
+  .page-item-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .page-item-meta{font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+  .empty-state{color:var(--muted);font-size:13px;text-align:center;padding:18px 0;}
+
+  /* ---------------- Hosted page view ---------------- */
+  #pageView{display:none;height:100%;flex-direction:column;}
+  #pageBar{
+    background:var(--surface);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:10px;padding:9px 14px;flex-wrap:wrap;
+  }
+  .back-link{display:flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;}
+  .back-link:hover{color:var(--text);}
+  .back-link svg{width:15px;height:15px;}
+  #pageTitle{font-size:13.5px;font-weight:600;flex:1;min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #pageLink{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:5px 9px;}
+  #hostedFrame{flex:1;width:100%;border:none;background:#fff;}
+
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--surface-2);color:var(--text);border:1px solid var(--line);
+    padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;
+    opacity:0;transition:opacity .2s ease, transform .2s ease;pointer-events:none;z-index:50;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:480px){
+    .card{padding:16px;}
+    textarea#codeInput{min-height:180px;}
+  }
+</style>
+</head>
+<body>
+<div id="root">
+
+  <!-- ===== HOME / HOST FORM ===== -->
+  <div id="homeView">
+    <div class="brand"><span class="brand-mark"></span><span class="brand-name">Abadi</span></div>
+    <p class="tagline">Tempel kode HTML kamu, terbitkan, dan halamannya akan tetap tersimpan — siap dibuka kapan saja.</p>
+
+    <div class="card">
+      <div class="card-label">Kode HTML</div>
+      <textarea id="codeInput" spellcheck="false" placeholder="&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;&lt;title&gt;Halamanku&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Halo dunia!&lt;/h1&gt;
+  &lt;/body&gt;
+&lt;/html&gt;"></textarea>
+
+      <div class="row">
+        <span class="hint">Halaman disimpan di penyimpanan bersama artifact ini, jadi siapa pun yang membuka artifact ini bisa melihat & mengakses halaman yang kamu host.</span>
+        <button class="example-link" id="exampleBtn" type="button">Pakai contoh</button>
+      </div>
+
+      <div class="row">
+        <button class="btn btn-primary" id="publishBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M5 12l5 5L20 7"/></svg>
+          Host & Buka Halaman
+        </button>
+      </div>
+    </div>
+
+    <div class="list-section">
+      <div class="list-title">Halaman yang sudah di-host</div>
+      <div id="pageList"></div>
+    </div>
+  </div>
+
+  <!-- ===== HOSTED PAGE VIEW ===== -->
+  <div id="pageView">
+    <div id="pageBar">
+      <button class="back-link" id="backBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Abadi
+      </button>
+      <span id="pageTitle"></span>
+      <span id="pageLink"></span>
+      <button class="btn-icon" id="copyBtn" title="Salin link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <button class="btn-icon" id="deleteBtn" title="Hapus halaman">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
+    </div>
+    <iframe id="hostedFrame" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+  const homeView = document.getElementById('homeView');
+  const pageView = document.getElementById('pageView');
+  const codeInput = document.getElementById('codeInput');
+  const publishBtn = document.getElementById('publishBtn');
+  const exampleBtn = document.getElementById('exampleBtn');
+  const pageList = document.getElementById('pageList');
+  const pageTitleEl = document.getElementById('pageTitle');
+  const pageLinkEl = document.getElementById('pageLink');
+  const hostedFrame = document.getElementById('hostedFrame');
+  const backBtn = document.getElementById('backBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const deleteBtn = document.getElementById('deleteBtn');
+  const toastEl = document.getElementById('toast');
+
+  const INDEX_KEY = 'abadi-pages-index';
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    setTimeout(() => toastEl.classList.remove('show'), 1800);
+  }
+
+  function genId(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function extractTitle(html){
+    const m = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+    if(m && m[1].trim()) return m[1].trim();
+    const h1 = html.match(/<h1[^>]*>([^<]*)<\/h1>/i);
+    if(h1 && h1[1].trim()) return h1[1].trim();
+    return 'Halaman tanpa judul';
+  }
+
+  async function getIndex(){
+    try{
+      const res = await window.storage.get(INDEX_KEY, true);
+      return res && res.value ? JSON.parse(res.value) : [];
+    }catch(e){
+      return [];
+    }
+  }
+  async function saveIndex(list){
+    try{
+      await window.storage.set(INDEX_KEY, JSON.stringify(list), true);
+    }catch(e){
+      console.error('Gagal menyimpan index', e);
+    }
+  }
+
+  async function renderList(){
+    pageList.innerHTML = '<div class="empty-state">Memuat…</div>';
+    const list = await getIndex();
+    if(!list.length){
+      pageList.innerHTML = '<div class="empty-state">Belum ada halaman yang di-host.</div>';
+      return;
+    }
+    list.sort((a,b) => b.created - a.created);
+    pageList.innerHTML = '';
+    list.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'page-item';
+      const date = new Date(item.created).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' });
+      row.innerHTML = `
+        <div class="page-item-main" data-id="${item.id}">
+          <div class="page-item-title">${escapeHtml(item.title)}</div>
+          <div class="page-item-meta">#/p/${item.id} · ${date}</div>
+        </div>
+        <button class="btn-icon delete-item" data-id="${item.id}" title="Hapus">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      `;
+      pageList.appendChild(row);
+    });
+
+    pageList.querySelectorAll('.page-item-main').forEach(el => {
+      el.addEventListener('click', () => { location.hash = '#/p/' + el.dataset.id; });
+    });
+    pageList.querySelectorAll('.delete-item').forEach(el => {
+      el.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await deletePage(el.dataset.id);
+        renderList();
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  async function deletePage(id){
+    try{ await window.storage.delete('abadi-page:' + id, true); }catch(e){}
+    const list = await getIndex();
+    await saveIndex(list.filter(p => p.id !== id));
+  }
+
+  publishBtn.addEventListener('click', async () => {
+    const code = codeInput.value.trim();
+    if(!code){ toast('Masukkan kode HTML dulu ya'); return; }
+
+    publishBtn.disabled = true;
+    publishBtn.textContent = 'Menerbitkan…';
+
+    const id = genId();
+    const title = extractTitle(code);
+    const created = Date.now();
+
+    try{
+      await window.storage.set('abadi-page:' + id, JSON.stringify({ html: code, title, created }), true);
+      const list = await getIndex();
+      list.push({ id, title, created });
+      await saveIndex(list);
+      location.hash = '#/p/' + id;
+    }catch(e){
+      toast('Gagal menyimpan halaman, coba lagi');
+      console.error(e);
+    }finally{
+      publishBtn.disabled = false;
+      publishBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M5 12l5 5L20 7"/></svg> Host & Buka Halaman';
+    }
+  });
+
+  exampleBtn.addEventListener('click', () => {
+    codeInput.value = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Halaman Contoh</title>
+<style>
+  body{font-family:sans-serif;background:#0E1206;color:#A8FF60;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
+  h1{font-size:2.2rem;}
+</style>
+</head>
+<body>
+  <h1>Halo dari halaman yang di-host! 👋</h1>
+</body>
+</html>`;
+  });
+
+  backBtn.addEventListener('click', () => { location.hash = ''; });
+
+  copyBtn.addEventListener('click', async () => {
+    const url = location.href.split('#')[0] + '#/p/' + currentPageId;
+    try{
+      await navigator.clipboard.writeText(url);
+      toast('Link disalin');
+    }catch(e){
+      toast('Tidak bisa menyalin otomatis — salin manual dari address bar');
+    }
+  });
+
+  deleteBtn.addEventListener('click', async () => {
+    if(!confirm('Hapus halaman ini secara permanen?')) return;
+    await deletePage(currentPageId);
+    location.hash = '';
+  });
+
+  let currentPageId = null;
+
+  async function showPage(id){
+    currentPageId = id;
+    homeView.style.display = 'none';
+    pageView.style.display = 'flex';
+    pageTitleEl.textContent = 'Memuat…';
+    pageLinkEl.textContent = '#/p/' + id;
+    hostedFrame.srcdoc = '';
+
+    try{
+      const res = await window.storage.get('abadi-page:' + id, true);
+      if(!res){ throw new Error('not found'); }
+      const data = JSON.parse(res.value);
+      pageTitleEl.textContent = data.title;
+      hostedFrame.srcdoc = data.html;
+    }catch(e){
+      pageTitleEl.textContent = 'Halaman tidak ditemukan';
+      hostedFrame.srcdoc = '<body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#888;">Halaman ini tidak ditemukan atau sudah dihapus.</body>';
+    }
+  }
+
+  function showHome(){
+    pageView.style.display = 'none';
+    homeView.style.display = 'flex';
+    renderList();
+  }
+
+  function route(){
+    const m = location.hash.match(/^#\/p\/(.+)$/);
+    if(m){ showPage(decodeURIComponent(m[1])); }
+    else{ showHome(); }
+  }
+
+  window.addEventListener('hashchange', route);
+  route();
+})();
+</script>
+</body>
+</html>
